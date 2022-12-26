@@ -1,55 +1,15 @@
-# nessus-py
+# <repo name>
 
-A script for overcoming the limitations of the Nessus Rest APIs.
+Collection of vulnerability management scripts for implementing in continuous integration pipelines.
 
-## Start a scan called "Example scan name"
+## Features
 
-Use the following `if __name__ == '__main__'` code.
+- Rest API and web interface wrappers for common vulnerability management products, such as Nessus, Defensics, and Invinci.
 
-```python
-if __name__ == '__main__':
-    urllib3.disable_warnings()
+- Each script has the ability to run independently of all other scripts.
 
-    # Initialize global variables
-    url = "<URL to Nessus web interface>"
-    username = "<Nessus web interface username>"
-    password = "<Nessus web interface password>"
-    
-    # See https://docs.tenable.com/nessus/Content/GenerateAnAPIKey.htm 
-    api_access_key = "<Nessus API access key>"
-    api_secret_key = "<Nessus API secret key>"
+- Detailed README.md in each script's directory for details on usage.
 
-    # Use a Playwright context manager for web interface interaction
-    with sync_playwright() as cm:
-        nessus = NessusEssentials(url, username, password, api_access_key, api_secret_key, cm)
+## Requirements
 
-        nessus.start_scan("Example scan name")
-        scan_complete = nessus.block_until_scan_completes("Example scan name")
-        
-        print('This string prints after the scan finishes')
-```
-
-## Usage
-1) Install the required packages
-
-```bash
-pip install -r requirements.txt
-playwright install
-```
-
-2) Replace variables with your Nessus information at the bottom of `nessus.py`
-```python
-if __name__ == '__main__':
-    urllib3.disable_warnings()
-
-    # Initialize global variables
-    url = "<URL to Nessus web interface>"
-    username = "<Nessus web interface username>"
-    password = "<Nessus web interface password>"
-    
-    # See https://docs.tenable.com/nessus/Content/GenerateAnAPIKey.htm 
-    api_access_key = "<Nessus API access key>"
-    api_secret_key = "<Nessus API secret key>"
-```
-
-3) Run `python3 nessus.py`
+python3

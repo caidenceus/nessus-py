@@ -1,4 +1,6 @@
-# Nessus 10.4
+# Nessus Essentials 10.4
+
+Bypass feature limitations of the Rest API, such as starting a scan, by crawling the web interface.
 
 ### Currently supported methods
 ```python
@@ -13,6 +15,29 @@ block_until_scan_completes(self, scan_name, timeout=360, interval=5)
 ```
 
 ### Usage
+1) Install the required packages
+
+```bash
+pip install -r requirements.txt
+playwright install
+```
+
+2) Replace variables with your Nessus information at the bottom of `nessus_essentials.py`
+```python
+if __name__ == '__main__':
+    urllib3.disable_warnings()
+
+    # Initialize global variables
+    url = "<URL to Nessus web interface>"
+    username = "<Nessus web interface username>"
+    password = "<Nessus web interface password>"
+    
+    # See https://docs.tenable.com/nessus/Content/GenerateAnAPIKey.htm 
+    api_access_key = "<Nessus API access key>"
+    api_secret_key = "<Nessus API secret key>"
+```
+
+3) Run `python3 nessus.py`
 
 
 ### Method details
