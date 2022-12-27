@@ -27,6 +27,8 @@ def assert_valid_http_response(
     print(f'Asserting valid HTTP response from {url}')
     if code != expected_status:
         print(f'Aborting: expected status code {expected_status} not {code}')
+        print('Raw response:')
+        print(response.text)
         exit()
 
     if expecting_json:
@@ -196,7 +198,7 @@ class NessusEssentials(NessusEssentialssWebInterface):
         :param context_manager: Playwright sync API contect manager.
         :param headless: If True, the web browser will not display.
         """
-        super().__init__(url, username, password, headless, context_manager)
+        super().__init__(url, username, password, context_manager, headless)
 
         # Rest API authentication
         api_auth = f'accessKey={api_access_key}; secretKey={api_secret_key}'
@@ -352,7 +354,7 @@ class NessusEssentials(NessusEssentialssWebInterface):
                 url, headers=self._default_headers, verify=False)
         else:
             resp = requests.post(
-                url, headers=self._default_headers, json={'targets': targets},
+                url, headers=self._default_headers, data={'targets': targets},
                 verify=False)
 
         # Do not call assert_valid_http_response because API may return 200
@@ -372,9 +374,62 @@ class NessusEssentials(NessusEssentialssWebInterface):
             print(f'return code from {url} was {resp.status_code}')
             exit()
 
+    def export_scan(self, scan_name, format='nessus', file_name='export'):
+        """Export a Nessus scan.
+
+        Note: This request requires can view scan permissions.
+
+        :param scan_name: The name of the scan to export.
+        :param format: Export format. One of [nessus:html:pdf:csv:db].
+        :param file_name: What to name the export file.
+        """
+        self._assert_scan_exists(scan_name)
+        if format not in ('nessus', 'html', 'pdf', 'csv', 'db'):
+            print(f'"{format}" is an invalid export format...')
+            print('was expecting one of ["nessus":"html":"pdf":"csv":"db"]')
+
+        scan_id = self.get_scan_information(scan_name)['id']
+        url = self._url + f'/scans/{scan_id}/export' 
+
+        # Required payload parameters
+        data = '{"format": "' + format + '"'
+        if format == 'html':
+            data += ', "chapters": "vuln_hosts_summary:vuln_by_host:compliance_exec:remediations:vuln_by_plugin:compliance"'
+        data += '}'
+
+        print(f'Attempting to export and download {scan_name}')
+        resp = requests.post(
+            url, data.encode(), headers=self._default_headers, verify=False)
+        assert_valid_http_response(resp, url, expecting_json=True)
+
+        file_id = resp.json()['file']
+        print('Attempting to download "{}"'.format(resp.json()))
+
+        download_url = self._url + f'/scans/{scan_id}/export/{file_id}/download'
+        status_code = 409  # Report is being generated
+        timeout = 1800  # 30 minutes 
+
+        # Will block for up to half an hour while report is being generated
+        while status_code == 409:
+            if timeout == 0:
+                print('Aborting: Export request timeout.')
+                exit()
+            resp = requests.get(
+                download_url, headers=self._default_headers, verify=False)
+            status_code = resp.status_code
+            time.sleep(5)  # Poll every 5 seconds
+            timeout -= 5
+        assert_valid_http_response(resp, download_url, expecting_json=False)
+
+        export_file_name = file_name + f'.{format}'
+        with open(export_file_name, 'w') as file:
+            file.write(resp.text)
+        print(f'Successfully exported and downloaded "{scan_name}"')
 
 
-# Your code goes below this line
+##################################
+# Your code goes below this line #
+##################################
 if __name__ == '__main__':
     urllib3.disable_warnings()
 
@@ -397,5 +452,5 @@ if __name__ == '__main__':
         # Block scrip execution until "Example scan name" finishes
         nessus.block_until_scan_completes("Example scan name")
         
-        print('This string prints after the scan finishes')
-
+        # Export the scan as an HTML file called scan.html
+        nessus.export_scan('Example scan name', format='html', file_name='scan')

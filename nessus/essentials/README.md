@@ -4,13 +4,17 @@ Bypass feature limitations of the Rest API, such as starting a scan, by crawling
 
 ### Currently supported methods
 ```python
+# Scan interaction
 start_scan(self, scan_name, targets=[])
+export_scan(self, scan_name, format='nessus', file_name='export')
 
+# Information
 get_scan_folders(self)
 get_on_demand_scans(self)
 get_scan_status(self, scan_name: str) -> str
 get_scan_information(self, scan_name)
 
+# Script execution
 block_until_scan_completes(self, scan_name, timeout=360, interval=5)
 ```
 
@@ -44,11 +48,23 @@ if __name__ == '__main__':
 ```python
 def start_scan(self, scan_name, targets=[]):
     """Start a Nessus scan.
+
     Note: This endpoint is only available on Nessus Manager, we use
           a dirty hack to bypass this feature limitation if applicable.
 
     :param scan_name: The name of the scan to start.
     :param targets: The target IP address(es) to pass to the scan.
+    """
+
+
+def export_scan(self, scan_name, format='nessus', file_name='export'):
+    """Export a Nessus scan.
+
+    Note: This request requires can view scan permissions.
+
+    :param scan_name: The name of the scan to export.
+    :param format: Export format. One of [nessus:html:pdf:csv:db].
+    :param file_name: What to name the export file.
     """
 
 
