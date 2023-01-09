@@ -1,4 +1,4 @@
-# Nessus Essentials 10.4
+# Nessus Essentials 10.4.1
 
 Bypass feature limitations of the Rest API, such as starting a scan, by crawling the web interface.
 
